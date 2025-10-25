@@ -1,28 +1,26 @@
-import User from "../models/UserModel";
+// services/userServices.js
+import User from "../models/UserModel.js";
 
-// Classe para manipulação dos dados do usuário
-class userService {
-
-    // Criando usuário
-    async Create (nome, cpf, email, senha){
-        try{
-            const newUser = new User({ nome, cpf, email, senha });
-            await newUser.save();
-        } catch (error) {
-            console.log(error);
-        }
-    } 
-
-
-    // Retornando dados de um único usuário cadastrado
-    async getOne(email) {
-        try{
-            const user = await User.findOne({ email });
-            return user;
-        } catch(error){
-            console.log(error);        
-        }
+class UserService {
+  async Create(nome, cpf, email, senha) {
+    try {
+      const newUser = new User({ nome, cpf, email, senha });
+      await newUser.save();
+    } catch (error) {
+      console.error(error);
+      throw new Error("Erro ao criar usuário.");
     }
+  }
+
+  async getOne(email) {
+    try {
+      const user = await User.findOne({ email }).select("+senha");
+      return user;
+    } catch (error) {
+      console.error(error);
+      throw new Error("Erro ao buscar usuário.");
+    }
+  }
 }
 
-export default new userService();
+export default new UserService();

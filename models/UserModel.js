@@ -1,6 +1,7 @@
-const mongoose = require('mongoose');
-const bcrypt = require('bcryptjs');
-const jwt = require('jsonwebtoken');
+// models/UserModel.js
+import mongoose from 'mongoose';
+import bcrypt from 'bcryptjs';
+import jwt from 'jsonwebtoken';
 
 const UserSchema = new mongoose.Schema({
   nome: {
@@ -11,9 +12,6 @@ const UserSchema = new mongoose.Schema({
     type: String,
     required: [true, 'O CPF é obrigatório'],
     unique: true,
-    // Validação de formato (simples) pode ser adicionada aqui
-    // Ex: match: [/^\d{11}$/, 'Por favor, insira um CPF válido (apenas números)']
-    // A validação de CPF (algoritmo) geralmente fica na camada de serviço/controller.
   },
   email: {
     type: String,
@@ -29,44 +27,35 @@ const UserSchema = new mongoose.Schema({
     type: String,
     required: [true, 'A senha é obrigatória'],
     minlength: 8,
-    select: false, // Não retorna a senha em consultas por padrão
+    select: false,
   },
-}, {
-  timestamps: true, // Adiciona createdAt e updatedAt
-});
+}, { timestamps: true });
 
-// Middleware (Hook) PRE-SAVE para fazer o HASH da senha (RF01 e RNF01)
+// Criptografa a senha antes de salvar
 UserSchema.pre('save', async function (next) {
-  // Executa somente se a senha foi modificada (ou é nova)
-  if (!this.isModified('senha')) {
-    return next();
-  }
+  if (!this.isModified('senha')) return next();
 
-  // Validação de complexidade da senha (RF01)
   const regexSenha = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
   if (!regexSenha.test(this.senha)) {
-     return next(new Error('A senha não atende aos critérios de complexidade (mínimo 8 caracteres, uma maiúscula, uma minúscula, um número e um caractere especial).'));
+    return next(new Error('A senha não atende aos critérios de complexidade.'));
   }
 
-  // Gera o "salt" e faz o hash
   const salt = await bcrypt.genSalt(10);
   this.senha = await bcrypt.hash(this.senha, salt);
   next();
 });
 
-// Método para comparar a senha (usado no Login)
+// Verifica senha
 UserSchema.methods.matchPassword = async function (enteredPassword) {
   return await bcrypt.compare(enteredPassword, this.senha);
 };
 
-// Método para gerar o Token JWT (usado no Login)
+// Gera token JWT
 UserSchema.methods.getSignedJwtToken = function () {
-// Note que process.env.JWT_SECRET e JWT_EXPIRE vêm do seu .env    
   return jwt.sign({ id: this._id }, process.env.JWT_SECRET, {
     expiresIn: process.env.JWT_EXPIRE,
   });
 };
 
-
-module.exports = mongoose.model('User', UserSchema);
+const User = mongoose.model('User', UserSchema);
 export default User;

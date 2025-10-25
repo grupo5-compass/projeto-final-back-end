@@ -27,6 +27,10 @@ app.get("/", (req, res) => {
 // Ex: import authRoutes from './routes/authRoutes.js';
 //     app.use('/api/auth', authRoutes);
 
+import User from "./models/UserModel.js";
+import userRoutes from './routes/userRoutes.js';
+app.use("/", userRoutes);
+
 // --- Inicialização do Servidor ---
 // Configuração da porta da API (usando a variável de ambiente ou 4000)
 const port = process.env.PORT || 4000;

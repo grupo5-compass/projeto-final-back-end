@@ -1,7 +1,17 @@
 //Importação do express
 import express from "express";
-const app = express();
+//const app = express();
+import dotenv from 'dotenv';
+import connectDB from './config/db.js'; // <-- 1. Importar a conexão com o DB
 
+// --- Configuração Inicial ---
+// Carrega as variáveis de ambiente do .env
+dotenv.config();
+
+// Conecta ao Banco de Dados MongoDB
+connectDB(); // <-- 2. Executar a conexão
+
+const app = express();
 
 // configuração do Express
 app.use(express.urlencoded({ extended: false}));
@@ -13,8 +23,16 @@ app.get("/", (req, res) => {
     res.send("API funcionando rodando normalmente!");
 });
 
+// (Aqui você irá adicionar suas rotas de autenticação e outras)
+// Ex: import authRoutes from './routes/authRoutes.js';
+//     app.use('/api/auth', authRoutes);
+
+// --- Inicialização do Servidor ---
+// Configuração da porta da API (usando a variável de ambiente ou 4000)
+const port = process.env.PORT || 4000;
+
 // Configuração da porta da API
-const port = 4000;
+//const port = 4000;
 app.listen(port, (error) => {
     if(error){
         console.log(error);

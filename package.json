@@ -5,7 +5,7 @@
   "type": "module",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1", 
+    "test": "echo \"Error: no test specified\" && exit 1",
     "start": "npx nodemon index.js"
   },
   "repository": {
@@ -20,7 +20,11 @@
   },
   "homepage": "https://github.com/grupo5-compass/projeto-final-back-end#readme",
   "dependencies": {
+    "bcrypt": "^6.0.0",
+    "dotenv": "^17.2.3",
     "express": "^5.1.0",
+    "jsonwebtoken": "^9.0.2",
+    "mongoose": "^8.19.2",
     "nodemon": "^3.1.10"
   }
 }

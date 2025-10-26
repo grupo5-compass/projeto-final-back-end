@@ -2,6 +2,7 @@
 import express from "express";
 //const app = express();
 import dotenv from 'dotenv';
+import cors from 'cors';
 import connectDB from './config/db.js'; // <-- 1. Importar a conexão com o DB
 
 // --- Configuração Inicial ---
@@ -12,6 +13,16 @@ dotenv.config();
 connectDB(); // <-- 2. Executar a conexão
 
 const app = express();
+
+// Configuração do CORS
+const corsOptions = {
+    origin: true, // Permite qualquer origem
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
+    credentials: true // Permite cookies e credenciais
+};
+
+app.use(cors(corsOptions));
 
 // configuração do Express
 app.use(express.urlencoded({ extended: false}));

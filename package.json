@@ -20,6 +20,7 @@
   },
   "homepage": "https://github.com/grupo5-compass/projeto-final-back-end#readme",
   "dependencies": {
+    "axios": "^1.13.0",
     "bcrypt": "^6.0.0",
     "bcryptjs": "^3.0.2",
     "cors": "^2.8.5",

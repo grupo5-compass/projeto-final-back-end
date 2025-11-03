@@ -37,10 +37,15 @@ app.get("/", (req, res) => {
 // (Aqui você irá adicionar suas rotas de autenticação e outras)
 // Ex: import authRoutes from './routes/authRoutes.js';
 //     app.use('/api/auth', authRoutes);
+// Adicionado prefixo /api para todas as rotas de usuário
+// endpoints serão: /api/user, /api/auth, /api/checkUser
+// (Futuramente, outras rotas serão adicionadas aqui)
+// Ex: import financialRoutes from './routes/financialRoutes.js';
+//     app.use('/api', financialRoutes);
 
 import User from "./models/UserModel.js";
 import userRoutes from './routes/userRoutes.js';
-app.use("/", userRoutes);
+app.use("/api", userRoutes);
 
 // --- Inicialização do Servidor ---
 // Configuração da porta da API (usando a variável de ambiente ou 4000)

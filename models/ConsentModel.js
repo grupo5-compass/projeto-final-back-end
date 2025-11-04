@@ -27,20 +27,23 @@ const ConsentSchema = new mongoose.Schema(
             enum: ['active', 'revoked'],
             required: [true, 'O status é obrigatório'],
         },
-        createdAt: {
+        createdAt: { // Recebe data de criação do consentimento na API
             type: Date,
             required: [true, 'A data de criação do consent é obrigatória'],
         },
         expiresAt: {
             type: Date,
             required: [true, 'A data de expiração do consent é obrigatória'],
+        },
+        lastSync: {
+            type: Date,
+            default: Date.now  // Atualiza a data de sincronização do consentimento
         }
-
-    },
+    }, 
     {
         collection: 'consents',
     }
-)
+);
 
 const Consent = mongoose.model('Consent', ConsentSchema);
 export default Consent;

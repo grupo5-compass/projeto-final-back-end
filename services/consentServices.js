@@ -56,8 +56,7 @@ class ConsentService {
     }
 
     /**
-     * Sincroniza consentimentos locais com a API externa provinda da rota /consents
-     * @param {string} consentId - ID específico do consent(opcional)
+     * Sincroniza consentimentos locais com a API externa provindos da rota /consents
      * @returns {Promise<Object>} Resultado da sincronização
      */
     async syncConsent() {

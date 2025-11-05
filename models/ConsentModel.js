@@ -1,9 +1,6 @@
 // models/Consent.js
 import mongoose from 'mongoose';
 
-// clientAppId -> é necessário nesse sistema??
-// permissions -> é necessário nesse sistema??
-
 const ConsentSchema = new mongoose.Schema(
     {
         _id: {

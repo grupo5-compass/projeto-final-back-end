@@ -45,7 +45,16 @@ app.get("/", (req, res) => {
 
 import User from "./models/UserModel.js";
 import userRoutes from './routes/userRoutes.js';
+import financialInstitutionRoutes from './routes/financialInstitutionRoutes.js';
+import { startSyncJob } from './jobs/syncInstitutionsJob.js';
 app.use("/api", userRoutes);
+app.use("/api", financialInstitutionRoutes);
+
+// Inicia job periódico se habilitado por ENV
+if (process.env.ENABLE_SYNC_JOB === 'true') {
+    console.log('ENABLE_SYNC_JOB=true → iniciando job de sincronização de instituições');
+    startSyncJob();
+}
 
 // --- Inicialização do Servidor ---
 // Configuração da porta da API (usando a variável de ambiente ou 4000)

@@ -59,6 +59,38 @@ class ConsentService {
         }
     }
 
+        /** ----------  SINCRONIZAÇÃO pela rota GET /consents ---------- */
+
+    /**
+     * Sincroniza consentimentos locais com a API externa provindos da rota /consents
+     * @returns {Promise<Object>} Resultado da sincronização
+     */
+    async syncConsent() {
+        try {
+            const consentArray = await this.fetchFromExternalAPI();
+            const syncResults = { created: 0, updated: 0, revoked: 0, errors: [], syncDate: new Date() };
+
+            await Promise.all(consentArray.map(async consent => {
+                const success = await this.saveConsent(consent, 'active');
+                if (success) syncResults.updated++;
+                else syncResults.errors.push(consent._id);
+            }));
+
+            const revokedConsents = await this.getRevokedConsents(consentArray);
+            for (const consent of revokedConsents) {
+                await this.saveConsent(consent, 'revoked');
+                syncResults.revoked++;
+            }
+
+            return syncResults;
+        } catch (error) {
+            console.error("Erro na sincronização:", error.message);
+            throw new Error(`Erro ao sincronizar consentimentos: ${error.message}`);
+        }
+    }
+
+        /** ----------  SINCRONIZAÇÃO pela rota GET /consents/:id ---------- */
+
     /**
      * Sincroniza um consentimento local buscado pelo id na API externa (/consents/:id)
      * @param {String} idConsent - ID do consentimento a ser buscado.
@@ -125,6 +157,20 @@ class ConsentService {
     }
 
     /**
+     * Busca um consent pelo ID do cliente
+     * @param {String} idCustomer - ID do cliente.
+     * @returns {Object|null} Retorna o objeto do consentimento, ou null se não for encontrado.
+     */
+    async findByIdCustomer(idCustomer) {
+        try {
+            return await Consent.findOne({customerId: idCustomer})
+        } catch (error) {
+            console.error('Erro ao buscar consentimento:', error.message);
+            return null;
+        }
+    }
+
+    /**
      * Retorna o status do consentimento
      * @param {String} idConsent - ID do consentimento a ser buscado.
      * @returns {String|null} Retorna o status do consentimento, ou null se não encontrado.
@@ -150,35 +196,7 @@ class ConsentService {
         return allLocalConsents.filter(local => !apiIds.includes(local._id.toString()));
     }
 
-    /** ----------  SINCRONIZAÇÃO PRINCIPAL ---------- */
 
-    /**
-     * Sincroniza consentimentos locais com a API externa provindos da rota /consents
-     * @returns {Promise<Object>} Resultado da sincronização
-     */
-    async syncConsent() {
-        try {
-            const consentArray = await this.fetchFromExternalAPI();
-            const syncResults = { created: 0, updated: 0, revoked: 0, errors: [], syncDate: new Date() };
-
-            await Promise.all(consentArray.map(async consent => {
-                const success = await this.saveConsent(consent, 'active');
-                if (success) syncResults.updated++;
-                else syncResults.errors.push(consent._id);
-            }));
-
-            const revokedConsents = await this.getRevokedConsents(consentArray);
-            for (const consent of revokedConsents) {
-                await this.saveConsent(consent, 'revoked');
-                syncResults.revoked++;
-            }
-
-            return syncResults;
-        } catch (error) {
-            console.error("Erro na sincronização:", error.message);
-            throw new Error(`Erro ao sincronizar consentimentos: ${error.message}`);
-        }
-    }
 }
 
 export default new ConsentService();

@@ -2,6 +2,7 @@
 import express from "express";
 //const app = express();
 import dotenv from 'dotenv';
+import cors from 'cors';
 import connectDB from './config/db.js'; // <-- 1. Importar a conexão com o DB
 
 // --- Configuração Inicial ---
@@ -12,6 +13,16 @@ dotenv.config();
 connectDB(); // <-- 2. Executar a conexão
 
 const app = express();
+
+// Configuração do CORS
+const corsOptions = {
+    origin: true, // Permite qualquer origem
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
+    credentials: true // Permite cookies e credenciais
+};
+
+app.use(cors(corsOptions));
 
 // configuração do Express
 app.use(express.urlencoded({ extended: false}));
@@ -26,10 +37,24 @@ app.get("/", (req, res) => {
 // (Aqui você irá adicionar suas rotas de autenticação e outras)
 // Ex: import authRoutes from './routes/authRoutes.js';
 //     app.use('/api/auth', authRoutes);
+// Adicionado prefixo /api para todas as rotas de usuário
+// endpoints serão: /api/user, /api/auth, /api/checkUser
+// (Futuramente, outras rotas serão adicionadas aqui)
+// Ex: import financialRoutes from './routes/financialRoutes.js';
+//     app.use('/api', financialRoutes);
 
 import User from "./models/UserModel.js";
 import userRoutes from './routes/userRoutes.js';
-app.use("/", userRoutes);
+import financialInstitutionRoutes from './routes/financialInstitutionRoutes.js';
+import { startSyncJob } from './jobs/syncInstitutionsJob.js';
+app.use("/api", userRoutes);
+app.use("/api", financialInstitutionRoutes);
+
+// Inicia job periódico se habilitado por ENV
+if (process.env.ENABLE_SYNC_JOB === 'true') {
+    console.log('ENABLE_SYNC_JOB=true → iniciando job de sincronização de instituições');
+    startSyncJob();
+}
 
 // --- Inicialização do Servidor ---
 // Configuração da porta da API (usando a variável de ambiente ou 4000)

@@ -46,14 +46,16 @@ app.get("/", (req, res) => {
 import User from "./models/UserModel.js";
 import userRoutes from './routes/userRoutes.js';
 import financialInstitutionRoutes from './routes/financialInstitutionRoutes.js';
-import { startSyncJob } from './jobs/syncInstitutionsJob.js';
+import syncRoutes from './routes/syncRoutes.js';
+import { startJob as startOpenFinanceSyncJob } from './jobs/syncOpenFinanceJob.js';
 app.use("/api", userRoutes);
 app.use("/api", financialInstitutionRoutes);
+app.use('/api', syncRoutes);
 
 // Inicia job periódico se habilitado por ENV
 if (process.env.ENABLE_SYNC_JOB === 'true') {
-    console.log('ENABLE_SYNC_JOB=true → iniciando job de sincronização de instituições');
-    startSyncJob();
+    console.log('ENABLE_SYNC_JOB=true → iniciando job de sincronização Open Finance (instituições, consents, clientes, contas, transações)');
+    startOpenFinanceSyncJob();
 }
 
 // --- Inicialização do Servidor ---

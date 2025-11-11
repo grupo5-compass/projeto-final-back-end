@@ -48,9 +48,15 @@ import userRoutes from './routes/userRoutes.js';
 import institutionRoutes from './routes/institutionRoutes.js';
 import syncRoutes from './routes/syncRoutes.js';
 import { startJob as startOpenFinanceSyncJob } from './jobs/syncOpenFinanceJob.js';
+import customerRoutes from './routes/customerRoutes.js';
+import accountRoutes from './routes/accountRoutes.js';
+import transactionRoutes from './routes/transactionRoutes.js';
 app.use("/api", userRoutes);
 app.use("/api", institutionRoutes);
 app.use('/api', syncRoutes);
+app.use('/api', customerRoutes);
+app.use('/api', accountRoutes);
+app.use('/api', transactionRoutes);
 
 // Inicia job periódico se habilitado por ENV
 if (process.env.ENABLE_SYNC_JOB === 'true') {

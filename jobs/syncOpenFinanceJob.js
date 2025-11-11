@@ -4,7 +4,7 @@ import consentService from '../services/consentServices.js';
 import customerService from '../services/customerServices.js';
 import accountService from '../services/accountServices.js';
 import transactionService from '../services/transactionServices.js';
-import financialInstitutionService from '../services/financialInstitutionServices.js';
+import institutionService from '../services/institutionServices.js';
 
 let isRunning = false;
 
@@ -22,7 +22,7 @@ export async function runSync() {
   try {
     // 1) Sincronização de Instituições Financeiras (integrada neste job)
     try {
-      const instSync = await financialInstitutionService.syncInstitution();
+      const instSync = await institutionService.syncInstitution();
       results.institutions = instSync;
     } catch (instErr) {
       console.error('[OpenFinance Sync] Erro ao sincronizar instituições:', instErr.message);

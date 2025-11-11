@@ -1,4 +1,4 @@
-import financialInstitutionService from "../services/financialInstitutionServices.js";
+import institutionService from "../services/institutionServices.js";
 
 /**
  * @desc    Listar instituições financeiras ativas
@@ -14,7 +14,7 @@ export const listInstitutions = async (req, res) => {
             sort: { id: 1 }      // Ordena por id (if_001, if_002...)
         };
         
-        const institutions = await financialInstitutionService.getActiveInstitutions(options);
+        const institutions = await institutionService.getActiveInstitutions(options);
 
         // Retorna a lista para o frontend.
         // Se 'institutions' estiver vazio, retorna [] (lista vazia),
@@ -39,7 +39,7 @@ export const syncInstitutions = async (req, res) => {
         // Chama o serviço que:
         // 1. Busca dados da API externa (Fase 2)
         // 2. Salva/Atualiza no banco de dados local (Fase 3)
-        const syncResult = await financialInstitutionService.syncInstitution();
+        const syncResult = await institutionService.syncInstitution();
 
         console.log("Sincronização concluída:", syncResult);
         

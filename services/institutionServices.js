@@ -1,5 +1,5 @@
-// services/financialInstitutionServices.js
-import FinancialInstitution from "../models/FinancialInstitutionModel.js";
+// services/institutionServices.js
+import FinancialInstitution from "../models/institutionModel.js";
 
 class FinancialInstitutionService {
     constructor() {

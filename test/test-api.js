@@ -15,7 +15,7 @@ console.log(`MONGODB_URI: ${process.env.MONGODB_URI}\n`);
 if (process.env.FINANCIAL_INSTITUTION_API_URL_1) {
     console.log('Variáveis carregadas! Importando service...\n');
     
-    const { default: FinancialInstitutionService } = await import('../services/financialInstitutionServices.js');
+    const { default: FinancialInstitutionService } = await import('../services/institutionServices.js');
     
     async function testFetchFromExternalAPI() {
         console.log('🔍 Executando service - "fetchFromExternalAPI()"');

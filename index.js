@@ -45,11 +45,11 @@ app.get("/", (req, res) => {
 
 import User from "./models/UserModel.js";
 import userRoutes from './routes/userRoutes.js';
-import financialInstitutionRoutes from './routes/financialInstitutionRoutes.js';
+import institutionRoutes from './routes/institutionRoutes.js';
 import syncRoutes from './routes/syncRoutes.js';
 import { startJob as startOpenFinanceSyncJob } from './jobs/syncOpenFinanceJob.js';
 app.use("/api", userRoutes);
-app.use("/api", financialInstitutionRoutes);
+app.use("/api", institutionRoutes);
 app.use('/api', syncRoutes);
 
 // Inicia job periódico se habilitado por ENV

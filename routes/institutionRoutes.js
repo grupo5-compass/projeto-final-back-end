@@ -4,7 +4,7 @@ import express from "express";
 import {
     listInstitutions,
     syncInstitutions
-} from "../controllers/financialInstitutionController.js";
+} from "../controllers/institutionController.js";
 
 // 2. Importa o middleware de autenticação (Auth.js)
 // Importado o objeto 'Auth' que contém a função 'Authorization'

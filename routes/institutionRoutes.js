@@ -3,7 +3,8 @@ import express from "express";
 // 1. Importa os controllers que executam a ação
 import {
     listInstitutions,
-    syncInstitutions
+    syncInstitutions,
+    getMyInstitutions,
 } from "../controllers/institutionController.js";
 
 // 2. Importa o middleware de autenticação (Auth.js)
@@ -27,6 +28,13 @@ router.get("/institutions", Auth.Authorization, listInstitutions);
  * @access  Privado (Protegido pelo middleware Auth.Authorization)
  */
 router.post("/institutions/sync", Auth.Authorization, syncInstitutions);
+
+/**
+ * @route   GET /api/institutions/me
+ * @desc    Lista as instituições ligadas ao CPF do usuário autenticado
+ * @access  Privado (Protegido pelo middleware Auth.Authorization)
+ */
+router.get("/institutions/me", Auth.Authorization, getMyInstitutions);
 
 
 export default router;

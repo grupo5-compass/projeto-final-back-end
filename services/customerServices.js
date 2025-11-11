@@ -24,6 +24,10 @@ class CustomerService {
   async getLocalCustomer(customerId) {
     return Customer.findById(customerId);
   }
+
+  async getCustomerByCpf(cpf) {
+    return Customer.findOne({ cpf });
+  }
 }
 
 export default new CustomerService();

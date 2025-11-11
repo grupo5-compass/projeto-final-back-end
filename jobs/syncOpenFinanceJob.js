@@ -1,0 +1,98 @@
+import cron from 'node-cron';
+import Consent from '../models/ConsentModel.js';
+import consentService from '../services/consentServices.js';
+import customerService from '../services/customerServices.js';
+import accountService from '../services/accountServices.js';
+import transactionService from '../services/transactionServices.js';
+import financialInstitutionService from '../services/financialInstitutionServices.js';
+
+let isRunning = false;
+
+export async function runSync() {
+  if (isRunning) {
+    console.log('[OpenFinance Sync] Execução já em andamento, pulando este ciclo.');
+    return { skipped: true };
+  }
+  isRunning = true;
+  const startedAt = new Date();
+  console.log(`[OpenFinance Sync] Início: ${startedAt.toISOString()}`);
+
+  const results = { institutions: {}, consents: {}, customers: 0, accounts: 0, transactions: 0, errors: [] };
+
+  try {
+    // 1) Sincronização de Instituições Financeiras (integrada neste job)
+    try {
+      const instSync = await financialInstitutionService.syncInstitution();
+      results.institutions = instSync;
+    } catch (instErr) {
+      console.error('[OpenFinance Sync] Erro ao sincronizar instituições:', instErr.message);
+      results.errors.push({ step: 'institutions', error: instErr.message });
+    }
+
+    // 2) Sincronização de Consentimentos
+    const consentSync = await consentService.syncConsent();
+    results.consents = consentSync;
+
+    const activeConsents = await Consent.find({
+      status: 'active',
+      expiresAt: { $gt: new Date() },
+    }).select('_id customerId permissions');
+
+    for (const consent of activeConsents) {
+      try {
+        await customerService.syncCustomerById(consent.customerId);
+        results.customers++;
+
+        const hasAccounts = consent.permissions.includes('accounts');
+        const hasTransactions = consent.permissions.includes('transactions');
+
+        let accountIds = [];
+        if (hasAccounts) {
+          accountIds = await accountService.syncAccountsForCustomer(consent.customerId);
+          results.accounts += accountIds.length;
+        }
+
+        if (hasTransactions) {
+          const targets = hasAccounts ? accountIds : [];
+          // Se não sincronizou contas nesta rodada, ainda é possível que já existam associadas ao cliente
+          if (!hasAccounts) {
+            const customer = await customerService.getLocalCustomer(consent.customerId);
+            if (customer) accountIds = customer.accounts || [];
+          }
+
+          for (const accountId of (targets.length ? targets : accountIds)) {
+            const txIds = await transactionService.syncTransactionsForAccount(accountId);
+            results.transactions += txIds.length;
+          }
+        }
+      } catch (err) {
+        results.errors.push({ consentId: consent._id.toString(), error: err.message });
+      }
+    }
+  } catch (error) {
+    console.error('[OpenFinance Sync] Falha geral:', error.message);
+    results.errors.push({ error: error.message });
+  }
+
+  const finishedAt = new Date();
+  console.log(`[OpenFinance Sync] Fim: ${finishedAt.toISOString()}`);
+  console.log('[OpenFinance Sync] Resultado:', JSON.stringify(results));
+  isRunning = false;
+  return results;
+}
+
+export function startJob() {
+  const enabled = process.env.ENABLE_SYNC_JOB === 'true';
+  const cronExp = process.env.OPENFINANCE_SYNC_CRON || process.env.SYNC_CRON || '0 * * * *';
+
+  if (!enabled) {
+    console.log('[OpenFinance Sync] Job desativado por configuração.');
+    return null;
+  }
+
+  console.log(`[OpenFinance Sync] Agendando com expressão: ${cronExp}`);
+  const task = cron.schedule(cronExp, runSync, { scheduled: true });
+  return task;
+}
+
+export default { startJob };

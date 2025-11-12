@@ -1,4 +1,6 @@
-import financialInstitutionService from "../services/financialInstitutionServices.js";
+import institutionService from "../services/institutionServices.js";
+import customerService from "../services/customerServices.js";
+import consentService from "../services/consentServices.js";
 
 /**
  * @desc    Listar instituições financeiras ativas
@@ -14,7 +16,7 @@ export const listInstitutions = async (req, res) => {
             sort: { id: 1 }      // Ordena por id (if_001, if_002...)
         };
         
-        const institutions = await financialInstitutionService.getActiveInstitutions(options);
+        const institutions = await institutionService.getActiveInstitutions(options);
 
         // Retorna a lista para o frontend.
         // Se 'institutions' estiver vazio, retorna [] (lista vazia),
@@ -39,7 +41,7 @@ export const syncInstitutions = async (req, res) => {
         // Chama o serviço que:
         // 1. Busca dados da API externa (Fase 2)
         // 2. Salva/Atualiza no banco de dados local (Fase 3)
-        const syncResult = await financialInstitutionService.syncInstitution();
+        const syncResult = await institutionService.syncInstitution();
 
         console.log("Sincronização concluída:", syncResult);
         
@@ -62,5 +64,45 @@ export const syncInstitutions = async (req, res) => {
         
         // Outros erros (ex: falha no nosso DB)
         res.status(500).json({ message: "Erro interno ao sincronizar instituições." });
+    }
+};
+
+/**
+ * @desc    Listar instituições ligadas ao CPF do usuário autenticado
+ * @route   GET /api/institutions/me
+ * @access  Protegido (JWT) com segurança por CPF
+ */
+export const getMyInstitutions = async (req, res) => {
+    try {
+        const cpf = req?.LoggedUser?.cpf;
+        if (!cpf) {
+            const err = new Error("CPF ausente no token.");
+            err.statusCode = 403;
+            throw err;
+        }
+
+        const customer = await customerService.getCustomerByCpf(cpf);
+        if (!customer) {
+            const err = new Error("Cliente não encontrado para este CPF.");
+            err.statusCode = 404;
+            throw err;
+        }
+
+        const activeConsents = await consentService.getActiveConsentsByCustomerId(customer._id);
+
+        // Se não houver consents ativos, não há instituições vinculadas
+        if (!activeConsents || activeConsents.length === 0) {
+            return res.status(200).json([]);
+        }
+
+        // Por ora, retornamos as instituições ativas disponíveis.
+        // Em ambientes com múltiplas IFs, poderemos mapear consents -> instituições.
+        const options = { select: 'id nome status', sort: { id: 1 } };
+        const institutions = await institutionService.getActiveInstitutions(options);
+
+        return res.status(200).json(institutions);
+    } catch (error) {
+        console.error("Erro ao listar instituições do usuário:", error.message);
+        return res.status(error.statusCode || 500).json(error.message);
     }
 };

@@ -196,6 +196,21 @@ class ConsentService {
         return allLocalConsents.filter(local => !apiIds.includes(local._id.toString()));
     }
 
+    /**
+     * Retorna todos os consentimentos ATIVOS de um cliente
+     * @param {String} customerId - ID do cliente
+     * @returns {Promise<Array>} Lista de consentimentos ativos
+     */
+    async getActiveConsentsByCustomerId(customerId) {
+        try {
+            return await Consent.find({ customerId, status: 'active' })
+                .select('_id clientAppId permissions status createdAt expiresAt');
+        } catch (error) {
+            console.error('Erro ao buscar consents ativos por cliente:', error.message);
+            return [];
+        }
+    }
+
 
 }
 

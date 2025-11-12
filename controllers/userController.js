@@ -40,7 +40,7 @@ export const loginUser = async (req, res) => {
             return res.status(401).json({ err: "Credenciais inválidas." });
         }
 
-        const token = jwt.sign({ id: user._id, email: user.email }, JWTSecret, {
+        const token = jwt.sign({ id: user._id, email: user.email, cpf: user.cpf }, JWTSecret, {
             expiresIn: process.env.JWT_EXPIRE || "48h",
         });
 

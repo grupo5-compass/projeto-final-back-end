@@ -58,6 +58,13 @@ class AccountService {
       throw error;
     }
   }
+
+  async getAccountsByCustomerCpf(cpf) {
+    const customer = await Customer.findOne({ cpf }).lean();
+    if (!customer) return [];
+    if (!customer.accounts || customer.accounts.length === 0) return [];
+    return Account.find({ _id: { $in: customer.accounts } }).lean();
+  }
 }
 
 export default new AccountService();

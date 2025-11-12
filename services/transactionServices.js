@@ -1,5 +1,6 @@
 import Transaction from "../models/TransactionModel.js";
 import Account from "../models/AccountModel.js";
+import Customer from "../models/CustomerModel.js";
 import { fetchWithTimeout } from "./openFinanceApi.js";
 
 class TransactionService {
@@ -44,6 +45,29 @@ class TransactionService {
             );
             throw error;
         }
+    }
+
+    async getTransactionsByCustomerCpf(cpf, { page = 1, limit = 20 } = {}) {
+        const customer = await Customer.findOne({ cpf }).lean();
+        if (!customer) {
+            return { items: [], page, limit, total: 0, totalPages: 0 };
+        }
+        const accountIds = Array.isArray(customer.accounts) ? customer.accounts : [];
+        if (accountIds.length === 0) {
+            return { items: [], page, limit, total: 0, totalPages: 0 };
+        }
+
+        const query = { accountId: { $in: accountIds } };
+        const total = await Transaction.countDocuments(query);
+        const totalPages = Math.ceil(total / limit) || 1;
+        const skip = (Math.max(1, page) - 1) * limit;
+        const items = await Transaction.find(query)
+            .sort({ date: -1 })
+            .skip(skip)
+            .limit(limit)
+            .lean();
+
+        return { items, page, limit, total, totalPages };
     }
 }
 

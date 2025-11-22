@@ -69,6 +69,19 @@ class TransactionService {
 
         return { items, page, limit, total, totalPages };
     }
+
+    async getTransactionsByCustomerCpfAndDateRange(cpf, startDate, endDate) {
+        const customer = await Customer.findOne({ cpf }).lean();
+        if (!customer) return [];
+
+        const accountIds = Array.isArray(customer.accounts) ? customer.accounts : [];
+        if (accountIds.length === 0) return [];
+
+        return Transaction.find({
+            accountId: { $in: accountIds },
+            date: { $gte: startDate, $lte: endDate }
+        }).lean();
+    }
 }
 
 export default new TransactionService();

@@ -65,6 +65,20 @@ class AccountService {
     if (!customer.accounts || customer.accounts.length === 0) return [];
     return Account.find({ _id: { $in: customer.accounts } }).lean();
   }
+
+  async getAllCreditCardLimit(cpf) {
+    const customer = await Customer.findOne({ cpf }).lean();
+    if (!customer) return 0;
+
+    const accountIds = customer.accounts || [];
+
+    const result = await Account.aggregate([
+        { $match: { _id: { $in: accountIds } } },
+        { $group: { _id: null, total: { $sum: "$creditCardLimit" } } }
+    ]);
+
+    return result[0]?.total || 0;
+  }
 }
 
 export default new AccountService();

@@ -17,7 +17,7 @@ export async function runSync() {
   const startedAt = new Date();
   console.log(`[OpenFinance Sync] Início: ${startedAt.toISOString()}`);
 
-  const results = { institutions: {}, consents: {}, customers: 0, accounts: 0, transactions: 0, errors: [] };
+  const results = { institutions: {}, consents: {}, customers: 0, accounts: 0, balances: 0, transactions: 0, errors: [] };
 
   try {
     // 1) Sincronização de Instituições Financeiras (integrada neste job)
@@ -50,6 +50,16 @@ export async function runSync() {
         if (hasAccounts) {
           accountIds = await accountService.syncAccountsForCustomer(consent.customerId);
           results.accounts += accountIds.length;
+
+          for (const accountId of accountIds) {
+            try {
+              await accountService.syncBalance(accountId);
+              results.balances++;
+            } catch (balErr) {
+              console.error('[OpenFinance Sync] Erro ao sincronizar saldo da conta:', accountId, balErr.message);
+              results.errors.push({ step: 'balances', accountId, error: balErr.message });
+            }
+          }
         }
 
         if (hasTransactions) {

@@ -48,6 +48,10 @@ Todas exigem `Authorization: Bearer <token>` e aplicam segurança por CPF: o `cp
   - Paginação opcional; ordenado por `date` desc.
   - Critérios de aceitação: retorna transações das contas do cliente do CPF do token.
 
+- `GET /api/dashboard`
+  - Resposta: `{ success: true, billThisMonth, billLastMonth, creditCardLimit, growth, availableLimit }`.
+  - Critérios de aceitação: usa exclusivamente o CPF do token; `growth = null` quando `billLastMonth = 0`; `availableLimit = creditCardLimit - billThisMonth`.
+
 ## Instituições
 - `GET /api/institutions` — lista IFs ativas.
 - `POST /api/institutions/sync` — força sincronização das IFs.
@@ -91,6 +95,16 @@ Todas exigem `Authorization: Bearer <token>` e aplicam segurança por CPF: o `cp
   - Respostas:
     - Sucesso (200): `{ "success": true, "data": { "items": [ { "_id": "txn_001", "date": "2025-01-15", ... } ], "page": 1, "limit": 20, "total": 3, "totalPages": 1 } }`
     - Erro (500): `{ "success": false, "error": "Erro ao consultar transações.", "details": "mensagem" }`
+
+### Dashboard
+- `GET /api/dashboard`
+  - Headers: `Authorization: Bearer <token>`
+  - Respostas:
+    - Sucesso (200): `{ "success": true, "billThisMonth": 1250.75, "billLastMonth": 980.40, "creditCardLimit": 5000, "growth": 27.5, "availableLimit": 3749.25 }`
+    - CPF ausente (403): `{ "success": false, "error": "CPF não presente no token." }`
+    - Falha interna (500): `{ "success": false, "error": "Erro ao gerar dashboard." }`
+  - Exemplo `curl`:
+    - `curl -X GET http://localhost:4000/api/dashboard -H "Authorization: Bearer <token>"`
 
 ### Instituições (lista geral)
 - `GET /api/institutions`

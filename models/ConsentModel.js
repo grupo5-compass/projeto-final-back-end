@@ -7,6 +7,15 @@ const ConsentSchema = new mongoose.Schema(
             type: String,
             required: [true, 'O ID é obrigatório'],
         },
+        userId: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: 'User', // Referência ao Model de Usuário
+            required: [true, 'O consentimento deve estar vinculado a um usuário do sistema'],
+        },
+        institutionId: {
+            type: String, // Ex: "if_001"
+            required: [true, 'O ID da instituição financeira é obrigatório'],
+        },
         customerId: {
             type: String,
             required: [true, 'O ID do cliente é obrigatório'],
@@ -39,6 +48,7 @@ const ConsentSchema = new mongoose.Schema(
     }, 
     {
         collection: 'consents',
+        timestamps: true, // Adiciona createdAt e updatedAt automaticamente
     }
 );
 

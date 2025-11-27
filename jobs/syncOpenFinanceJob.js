@@ -33,18 +33,28 @@ export async function runSync() {
     const consentSync = await consentService.syncConsent();
     results.consents = consentSync;
 
+    //Adiciona userId ao consentimento se não existir
     const activeConsents = await Consent.find({
       status: 'active',
       expiresAt: { $gt: new Date() },
-    }).select('_id customerId permissions');
+    }).select('_id customerId permissions userId');
 
     for (const consent of activeConsents) {
       try {
-        await customerService.syncCustomerById(consent.customerId);
+        // Verifica se o consentimento nao possui userId
+        if (!consent.userId) {
+          console.warn(`[OpenFinance Sync] Consentimento sem userId, ignorando: ${consent._id}`);
+          continue;
+        }
+        // Passa o userID para o serviço de cliente
+        await customerService.syncCustomerById(consent.customerId, consent.userId);
         results.customers++;
 
-        const hasAccounts = consent.permissions.includes('accounts');
-        const hasTransactions = consent.permissions.includes('transactions');
+        //Verificaão de permissões mais detalhada (case insensitive)
+        //Garante que "ACCOUNTS_READ" ou "accounts" sejam detectados corretamente
+        const perms = consent.permissions.map(p => p.toLowerCase());
+        const hasAccounts = perms.some(p => p.includes("ACCOUNTS"));
+        const hasTransactions = perms.some(p => p.includes("TRANSACTIONS") || p.includes("CREDIT_CARDS"));
 
         let accountIds = [];
         if (hasAccounts) {

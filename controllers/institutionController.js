@@ -76,18 +76,16 @@ export const getMyInstitutions = async (req, res) => {
     try {
         const cpf = req?.LoggedUser?.cpf;
         if (!cpf) {
-            const err = new Error("CPF ausente no token.");
-            err.statusCode = 403;
-            throw err;
+            //Ajustado para retornar um json de erro padrão em vez de lançar um erro genérico para melhor controle
+            return res.status(403).json({ error: "CPF ausente no token." });
         }
-
+        //Busca o cliente local
         const customer = await customerService.getCustomerByCpf(cpf);
         if (!customer) {
-            const err = new Error("Cliente não encontrado para este CPF.");
-            err.statusCode = 404;
-            throw err;
+            return res.status(404).json({ error: "Cliente não encontrado para este CPF." });
         }
 
+        //Busca os consents ativos do cliente
         const activeConsents = await consentService.getActiveConsentsByCustomerId(customer._id);
 
         // Se não houver consents ativos, não há instituições vinculadas
@@ -95,12 +93,21 @@ export const getMyInstitutions = async (req, res) => {
             return res.status(200).json([]);
         }
 
+        //Extraí os ids das instituições dos consentimentos
+        //Baseado no modelo de consentimento que vincula cliente -> instituição
+        const myInstitutionIds = activeConsents.map(c => c.institutionId);
+
         // Por ora, retornamos as instituições ativas disponíveis.
         // Em ambientes com múltiplas IFs, poderemos mapear consents -> instituições.
         const options = { select: 'id nome status', sort: { id: 1 } };
-        const institutions = await institutionService.getActiveInstitutions(options);
+        const allActiveInstitutions = await institutionService.getActiveInstitutions(options);
 
-        return res.status(200).json(institutions);
+        // Filtra apenas as instituições vinculadas ao usuário
+        const myInstitutions = allActiveInstitutions.filter(inst =>
+             myInstitutionIds.includes(inst.id)
+        );
+
+        return res.status(200).json(myInstitutions);
     } catch (error) {
         console.error("Erro ao listar instituições do usuário:", error.message);
         return res.status(error.statusCode || 500).json(error.message);

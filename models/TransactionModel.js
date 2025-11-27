@@ -8,9 +8,18 @@ const TransactionSchema = new mongoose.Schema(
         amount: { type: Number, required: true },
         type: { type: String, enum: ["credit", "debit"], required: true },
         category: { type: String, required: true },
-        currentInstallment: { type: Number, required: true },
-        totalInstallments: { type: Number, required: true },
-        accountId: { type: String, required: true },
+
+        // CORREÇÃO: Parcelas devem ser opcionais
+        // Transações à vista ou de conta corrente não possuem esses dados
+        currentInstallment: { type: Number },
+        totalInstallments: { type: Number,},
+
+        accountId: { 
+            type: String, 
+            ref: 'Account', // Boa prática: Referência ao modelo de conta
+            required: true 
+        },
+        
         lastSync: { type: Date, default: Date.now },
     },
     { collection: "transactions" }
